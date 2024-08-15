@@ -494,6 +494,27 @@ export default function scopedCSS (
   return styleElement
 }
 
+export function scopedCssText (cssText: string, appName: string): string {
+  if (!parser) parser = new CSSParser()
+
+  let result: string | null = null
+  const prefix = createPrefix(appName)
+
+  try {
+    result = parser.exec(
+      cssText,
+      prefix,
+      '',
+    )
+    parser.reset()
+  } catch (e) {
+    parser.reset()
+    logError('An error occurred while parsing CSS:\n', appName, e)
+  }
+
+  return result || ''
+}
+
 export function createPrefix (appName: string, reg = false): string {
   const regCharacter = reg ? '\\' : ''
   return `${microApp.tagName}${regCharacter}[name=${appName}${regCharacter}]`

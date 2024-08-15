@@ -151,6 +151,14 @@ function invokePrototypeMethod (
 ): any {
   const hijackParent = getHijackParent(parent, targetChild, app)
   if (hijackParent) {
+    // 针对antd的动态style进行处理
+    if (isStyleElement(targetChild) && targetChild?.hasAttribute('data-rc-order')) {
+      if (passiveChild && hijackParent.contains(passiveChild)) {
+        return invokeRawMethod(rawMethod, hijackParent, targetChild, passiveChild)
+      } else {
+        return invokeRawMethod(rawMethod, hijackParent, targetChild, hijackParent.firstChild)
+      }
+    }
     /**
      * If parentNode is <micro-app-body>, return rawDocument.body
      * Scenes:

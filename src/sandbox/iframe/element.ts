@@ -12,7 +12,7 @@ import {
   isElement,
   isNode,
   isMicroAppBody,
-  throttleDeferForSetAppName,
+  throttleDeferForSetAppName, isStyleElement,
 } from '../../libs/utils'
 import {
   updateElementInfo,
@@ -20,6 +20,7 @@ import {
 import {
   appInstanceMap,
 } from '../../create_app'
+import { scopedCssText } from '../scoped_css'
 
 /**
  * patch Element & Node of child app
@@ -177,6 +178,12 @@ function patchIframeNode (
       return rawInnerHTMLDesc.get!.call(this)
     },
     set (code: string) {
+      // 针对antd的动态style进行处理
+      if (isStyleElement(this) && this?.hasAttribute('data-rc-order')) {
+        // antd cssinjs 会更新style节点，更新后会把css的scope去掉
+        // 这里进行判断，如果要更新的内容加上scope后和原来一样，则不更新
+        if (this.textContent === scopedCssText(code, appName)) return
+      }
       rawInnerHTMLDesc.set!.call(this, code)
       Array.from(this.children).forEach((child) => {
         if (isElement(child)) {
